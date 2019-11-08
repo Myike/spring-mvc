@@ -1,0 +1,14 @@
+target
+.settings
+.project
+*.jar
+*.war
+*.class
+*.log
+test
+.classpath
+coody-taboo
+*.iml
+/target/
+.idea/*.iml
+.idea/*
