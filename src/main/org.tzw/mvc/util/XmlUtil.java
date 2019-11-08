@@ -21,4 +21,10 @@ public class XmlUtil {
         }
         return "";
     }
+
+    public static boolean isEmpty(String string) {
+        if(null == string)return false;
+        if(null == string ||  "".equals(string) || string.length() < 1) return false;
+        return true;
+    }
 }

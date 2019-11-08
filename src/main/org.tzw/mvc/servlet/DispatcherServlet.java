@@ -1,5 +1,8 @@
 package mvc.servlet;
 
+import mvc.annotation.Controller;
+import mvc.annotation.Repository;
+import mvc.annotation.Service;
 import mvc.util.XmlUtil;
 
 import javax.servlet.ServletConfig;
@@ -51,10 +54,46 @@ public class DispatcherServlet extends HttpServlet {
 
     @Override
     public void init(ServletConfig config) throws ServletException {
-        getBasePackageNameFromConfigXml();
-        scanBasePackage(basePackage);
+        try {
+            //获取配置
+            getBasePackageNameFromConfigXml();
+            //设置扫描基本文件
+            scanBasePackage(basePackage);
+            //实例化
+            instance(packageNames);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        }
     }
 
+    /**
+     * 对象的初始化
+     * @param packageNames
+     */
+    private void instance(Set<String> packageNames) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        if(!packageNames.isEmpty()) {
+            for(String packageName : packageNames) {
+                Class<?> fileClass = Class.forName(packageName);
+                if(fileClass.isAnnotationPresent(Controller.class)) {
+                    Controller controller = fileClass.getAnnotation(Controller.class);
+                    String name = XmlUtil.isEmpty(controller.name()) ? fileClass.getSimpleName() : controller.name();
+                    instanceMap.put(name, fileClass.newInstance());
+                } else if(fileClass.isAnnotationPresent(Service.class)) {
+                    Service service = fileClass.getAnnotation(Service.class);
+                    String name = XmlUtil.isEmpty(service.name()) ? fileClass.getSimpleName() : service.name();
+                    instanceMap.put(name, fileClass.newInstance());
+                } else if(fileClass.isAnnotationPresent(Repository.class)) {
+                    Repository repository = fileClass.getAnnotation(Repository.class);
+                    String name = XmlUtil.isEmpty(repository.name()) ? fileClass.getSimpleName() : repository.name();
+                    instanceMap.put(name, fileClass.newInstance());
+                }
+            }
+        }
+    }
 
 
     /**
