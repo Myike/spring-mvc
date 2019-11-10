@@ -1,4 +1,4 @@
-package mvc.annotation;
+package org.tzw.mvc.annotation;
 
 import java.lang.annotation.*;
 

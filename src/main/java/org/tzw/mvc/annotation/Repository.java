@@ -1,16 +1,16 @@
-package mvc.annotation;
+package org.tzw.mvc.annotation;
 
 import java.lang.annotation.*;
 
 /**
  * @Author: zhiwutu
- * @Date: 2019/11/8 15:57
+ * @Date: 2019/11/8 15:58
  * @Description:
  */
-@Retention(RetentionPolicy.RUNTIME)
 @Documented
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface Service {
+public @interface Repository {
 
     public String name() default "";
 

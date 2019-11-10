@@ -1,6 +1,9 @@
-package mvc.util;
+package org.tzw.mvc.util;
 
-import org.dom4j.*;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
 
 /**
  * @Author: zhiwutu
