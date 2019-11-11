@@ -22,6 +22,12 @@ public class IndexController {
     @AutoWired(name = "indexService")
     private IndexService indexService;
 
+
+    @RequestMapping(path = "/index")
+    public String index() {
+        return "Hello Index;";
+    }
+
     @RequestMapping(path = "/login")
     public String login(HttpServletRequest request, HttpServletResponse response) {
         String result = "Loing successful! Welcome to my SpringMvc!" + indexService.login();

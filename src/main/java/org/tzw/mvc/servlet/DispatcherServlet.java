@@ -15,10 +15,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @Author: zhiwutu
@@ -80,7 +77,17 @@ public class DispatcherServlet extends HttpServlet {
             try {
                 method.setAccessible(true);
                 Class<?>[] parameterTypes = method.getParameterTypes();
-                Object invoke = method.invoke(controller, req, resp);
+                List<Object> methodParams = new ArrayList<>();
+                for(Class paramType : parameterTypes) {
+                    if(paramType == HttpServletRequest.class) {
+                        methodParams.add(req);
+                    } else if(paramType == HttpServletResponse.class) {
+                        methodParams.add(resp);
+                    } else {
+                    }
+                        System.out.println(paramType.getName());
+                }
+                Object invoke = method.invoke(controller, methodParams.toArray());
                 System.out.println("返回结果：" + invoke);
                 try {
                     resp.getWriter().write(invoke.toString());
@@ -128,16 +135,13 @@ public class DispatcherServlet extends HttpServlet {
         for(String packageName : packageNames) {
             Class<?> fileClass = Class.forName(packageName);
             Method[] methods = fileClass.getMethods();
-            StringBuffer baseUrl = new StringBuffer();
             if(fileClass.isAnnotationPresent(RequestMapping.class)) {
                 RequestMapping requestMapping = fileClass.getAnnotation(RequestMapping.class);
-                baseUrl.append(requestMapping.path());
                 //检测方法路径
                 for(Method method : methods) {
                     if(method.isAnnotationPresent(RequestMapping.class)) {
                         RequestMapping methodRequestMapping = method.getAnnotation(RequestMapping.class);
-                        baseUrl.append(methodRequestMapping.path());
-                        urlMethodMap.put(baseUrl.toString(), method);
+                        urlMethodMap.put(requestMapping.path()+methodRequestMapping.path(), method);
                         methodPackageMap.put(method, packageName);
                     }
                 }
