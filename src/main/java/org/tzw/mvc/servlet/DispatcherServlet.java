@@ -58,21 +58,35 @@ public class DispatcherServlet extends HttpServlet {
     private Map<String, String> nameMap = new HashMap<>();
 
     @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println("进入service");
+        super.service(req, resp);
+    }
+
+    @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         doPost(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        StringBuffer requestURL = req.getRequestURL();
-        Method method = urlMethodMap.get(requestURL);
+        String requestURI = req.getRequestURI().replaceAll(req.getContextPath(), "");
+        Method method = urlMethodMap.get(requestURI);
         if(null != method) {
             String packageName = methodPackageMap.get(method);
+            Map<String, String[]> parameterMap = req.getParameterMap();
             String controllerName = nameMap.get(packageName);
-            Object controller = instanceMap.get(controllerName);
+            Object controller = instanceMap.get(XmlUtil.lowerFirstCase(controllerName));
             try {
                 method.setAccessible(true);
-                method.invoke(controller);
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                Object invoke = method.invoke(controller, req, resp);
+                System.out.println("返回结果：" + invoke);
+                try {
+                    resp.getWriter().write(invoke.toString());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             } catch (InvocationTargetException e) {
@@ -124,6 +138,7 @@ public class DispatcherServlet extends HttpServlet {
                         RequestMapping methodRequestMapping = method.getAnnotation(RequestMapping.class);
                         baseUrl.append(methodRequestMapping.path());
                         urlMethodMap.put(baseUrl.toString(), method);
+                        methodPackageMap.put(method, packageName);
                     }
                 }
             }
@@ -160,20 +175,20 @@ public class DispatcherServlet extends HttpServlet {
                 Class<?> fileClass = Class.forName(packageName);
                 if(fileClass.isAnnotationPresent(Controller.class)) {
                     Controller controller = fileClass.getAnnotation(Controller.class);
-                    String name = XmlUtil.isEmpty(controller.name()) ? fileClass.getSimpleName() : controller.name();
+                    String name = !XmlUtil.isEmpty(controller.name()) ? fileClass.getSimpleName() : controller.name();
                     System.out.println("Controller名称："+name);
-                    instanceMap.put(name, fileClass.newInstance());
+                    instanceMap.put(XmlUtil.lowerFirstCase(name), fileClass.newInstance());
                     nameMap.put(packageName, name);
                 } else if(fileClass.isAnnotationPresent(Service.class)) {
                     Service service = fileClass.getAnnotation(Service.class);
-                    String name = XmlUtil.isEmpty(service.name()) ? fileClass.getSimpleName() : service.name();
+                    String name = !XmlUtil.isEmpty(service.name()) ? fileClass.getSimpleName() : service.name();
                     System.out.println("Service名称："+name);
-                    instanceMap.put(name, fileClass.newInstance());
+                    instanceMap.put(XmlUtil.lowerFirstCase(name), fileClass.newInstance());
                 } else if(fileClass.isAnnotationPresent(Repository.class)) {
                     Repository repository = fileClass.getAnnotation(Repository.class);
-                    String name = XmlUtil.isEmpty(repository.name()) ? fileClass.getSimpleName() : repository.name();
+                    String name = !XmlUtil.isEmpty(repository.name()) ? fileClass.getSimpleName() : repository.name();
                     System.out.println("Repository名称："+name);
-                    instanceMap.put(name, fileClass.newInstance());
+                    instanceMap.put(XmlUtil.lowerFirstCase(name), fileClass.newInstance());
                 }
             }
         }
@@ -187,13 +202,13 @@ public class DispatcherServlet extends HttpServlet {
     private void scanBasePackage(String basePackage) {
         URL url = this.getClass().getClassLoader().getResource(basePackage.replaceAll("\\.", "/"));
         File baseFile = new File(url.getPath());
-        System.out.println("扫描到文件是："+baseFile.getName());
         File[] files = baseFile.listFiles();
         for(File file : files) {
             if(file.isDirectory()) {
                 scanBasePackage(basePackage+"."+file.getName());
             } else if(file.isFile()) {
                 packageNames.add(basePackage+"."+file.getName().split("\\.")[0]);
+                System.out.println("扫描到文件是："+file.getName());
             }
         }
     }
@@ -202,7 +217,7 @@ public class DispatcherServlet extends HttpServlet {
      * 获得项目代码所在基本的包路径
      */
     private void getBasePackageNameFromConfigXml() {
-        String nodeValue = XmlUtil.getNodeValue("omponent-scan", "dispatcherServlet.xml");
+        String nodeValue = XmlUtil.getNodeValue("component-scan", "spring-mvc.xml");
         this.basePackage = nodeValue;
     }
 }

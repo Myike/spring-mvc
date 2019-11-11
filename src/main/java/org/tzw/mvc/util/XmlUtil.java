@@ -1,9 +1,9 @@
 package org.tzw.mvc.util;
 
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
+import org.dom4j.*;
+import org.dom4j.io.SAXReader;
+
+import java.io.InputStream;
 
 /**
  * @Author: zhiwutu
@@ -14,10 +14,14 @@ public class XmlUtil {
 
     public static String getNodeValue(String nodeName, String xmlPath) {
         try {
-            Document document = DocumentHelper.parseText(xmlPath);
-            Element element = (Element) document.selectSingleNode(nodeName);
-            if(null != element) {
-                return element.getStringValue();
+            ClassLoader classLoader = XmlUtil.class.getClassLoader();
+            InputStream resourceAsStream = classLoader.getResourceAsStream(xmlPath);
+            SAXReader reader = new SAXReader();
+            Document document = reader.read(resourceAsStream);
+            Element rootElement = document.getRootElement();
+            System.out.println(rootElement.getName());
+            if(null != rootElement) {
+                return  rootElement.attributeValue("base-package");
             }
         } catch (DocumentException e) {
             e.printStackTrace();
@@ -29,5 +33,12 @@ public class XmlUtil {
         if(null == string)return false;
         if(null == string ||  "".equals(string) || string.length() < 1) return false;
         return true;
+    }
+
+    public static String lowerFirstCase(String str){
+        char[] chars = str.toCharArray();
+        chars[0] +=32;
+        return String.valueOf(chars);
+
     }
 }
