@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -91,8 +92,10 @@ public class DispatcherServlet extends HttpServlet {
                         methodParams.add(resp);
                     }else {
                         //其他类型参数
+                        Annotation[][] parameterAnnotations = method.getParameterAnnotations();
                         if(parameterMap.containsKey(name)) {
                             String paramValue = parameterMap.get(name)[0].toString();
+
                             if(parameterType == int.class || parameterType == Integer.class) {
                                 methodParams.add(Integer.parseInt(paramValue));
                             } else if(parameterType == double.class || parameterType == Double.class) {
