@@ -7,7 +7,6 @@ import org.tzw.mvc.service.IndexService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 /**
  * @Author: zhiwutu
@@ -24,8 +23,8 @@ public class IndexController {
 
 
     @RequestMapping(path = "/index")
-    public String index() {
-        return "Hello Index;";
+    public String index(String name, double num) {
+        return "Hello Index; Request Param: " + name +";" +num;
     }
 
     @RequestMapping(path = "/login")

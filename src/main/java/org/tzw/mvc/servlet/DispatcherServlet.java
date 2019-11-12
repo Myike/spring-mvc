@@ -68,6 +68,8 @@ public class DispatcherServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp){
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json;charset=utf-8");
         String requestURI = req.getRequestURI().replaceAll(req.getContextPath(), "");
         Method method = urlMethodMap.get(requestURI);
         if(null != method) {
@@ -82,31 +84,39 @@ public class DispatcherServlet extends HttpServlet {
                 for(Parameter parameter : parameters) {
                     String name = parameter.getName();
                     System.out.println("参数名："+name);
-                    if(parameter.getType() == HttpServletRequest.class) {
+                    Class<?> parameterType = parameter.getType();
+                    if(parameterType == HttpServletRequest.class) {
                         methodParams.add(req);
-                    } else if(parameter.getType() == HttpServletResponse.class) {
+                    } else if(parameterType == HttpServletResponse.class) {
                         methodParams.add(resp);
                     }else {
                         //其他类型参数
                         if(parameterMap.containsKey(name)) {
-                            String[] requestParamValues = parameterMap.get(name);
-                            methodParams.add(requestParamValues[0]);
+                            String paramValue = parameterMap.get(name)[0].toString();
+                            if(parameterType == int.class || parameterType == Integer.class) {
+                                methodParams.add(Integer.parseInt(paramValue));
+                            } else if(parameterType == double.class || parameterType == Double.class) {
+                                methodParams.add(Double.parseDouble(paramValue));
+                            } else {
+                                methodParams.add(paramValue);
+                            }
                         } else {
                             methodParams.add(null);
                         }
                     }
                 }
+//                methodParams.add("tzw");
+//                methodParams.add(2);
+                Object invoke = method.invoke(controller, methodParams.toArray());
+                System.out.println("返回结果：" + invoke);
+                resp.getWriter().write(invoke.toString());
+            } catch (Exception e) {
+                e.printStackTrace();
                 try {
-                    Object invoke = method.invoke(controller, methodParams.toArray());
-                    System.out.println("返回结果：" + invoke);
-                    resp.getWriter().write(invoke.toString());
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    resp.getWriter().write("抱歉发生异常了！异常堆栈信息： " + e.getMessage());
+                } catch (IOException e1) {
+                    e1.printStackTrace();
                 }
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
             }
         }
     }
