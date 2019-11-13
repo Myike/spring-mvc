@@ -1,9 +1,6 @@
 package org.tzw.mvc.controller;
 
-import org.tzw.mvc.annotation.AutoWired;
-import org.tzw.mvc.annotation.Controller;
-import org.tzw.mvc.annotation.RequestMapping;
-import org.tzw.mvc.annotation.RequestParam;
+import org.tzw.mvc.annotation.*;
 import org.tzw.mvc.param.IndexParam;
 import org.tzw.mvc.service.IndexService;
 
@@ -25,8 +22,13 @@ public class IndexController {
 
 
     @RequestMapping(path = "/index")
-    public String index(@RequestParam IndexParam param) {
-        return "Hello Index; Request Param: " + param.toString();
+    public String index(HttpServletRequest request, HttpServletResponse response, @RequestParam  IndexParam param) {
+        return "Hello Index; Request Param: " + (null != param ? param.toString() : "null");
+    }
+
+    @RequestMapping(path = "/index2")
+    public String index2(HttpServletRequest request, HttpServletResponse response, @RequestBody IndexParam param) {
+        return "Hello Index2; Request2 Param: " + (null != param ? param.toString() : "null");
     }
 
     @RequestMapping(path = "/login")
